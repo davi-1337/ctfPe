@@ -32,7 +32,6 @@ const ctfData = ref({
 
 onMounted(async () => {
   try {
-    // Calls the /settings endpoint defined in backend/src/routes/ctf.js
     const response = await apiClient.get('/ctf/settings');
     ctfData.value = response.data;
   } catch (error) {

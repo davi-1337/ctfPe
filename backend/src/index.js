@@ -5,7 +5,14 @@ const { initDb } = require('./db/init');
 const setupRoutes = require('./routes/setup').router;
 const adminRoutes = require('./routes/admin');
 const ctfRoutes = require('./routes/ctf');
+const cors = require('cors');
 
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // fallback
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 console.log('DEBUG: setupRoutes type:', typeof setupRoutes);
 console.log('DEBUG: setupRoutes value:', setupRoutes);

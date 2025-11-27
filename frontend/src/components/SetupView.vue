@@ -1,7 +1,7 @@
 <template>
   <div class="setup-container">
     <div class="card">
-      <h2>CTFPe Setup</h2>
+      <h2>CTF Setup</h2>
       
       <div v-if="errorMessage" class="alert">
         {{ errorMessage }}
@@ -63,21 +63,17 @@ const setupStore = useSetupStore();
 const loading = ref(false);
 const errorMessage = ref('');
 
-// Form state
 const form = reactive({
   username: '',
   password: '',
   ctf_name: '',
-  duration_days: 7 // Default value
+  duration_days: 7
 });
 
-// Check status on mount
 onMounted(async () => {
   if (setupStore.isCompleted === null) {
     await setupStore.fetchSetupStatus();
   }
-
-  // If already done, redirect to Home
   if (setupStore.isSetupDone) {
     router.push('/');
   }
@@ -94,7 +90,6 @@ const handleSetup = async () => {
   loading.value = true;
 
   try {
-    // POST to /setup
     const response = await apiClient.post('/setup', {
       username: form.username,
       password: form.password,
@@ -104,7 +99,6 @@ const handleSetup = async () => {
 
     if (response.status === 201) {
       setupStore.markSetupAsComplete();
-      // Redirect to login because setup does not return JWT
       router.push('/login'); 
     }
   } catch (error) {
