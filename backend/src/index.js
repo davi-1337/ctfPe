@@ -2,9 +2,15 @@ const express = require('express');
 const app = express();
 const authRoutes = require('./routes/auth'); 
 const { initDb } = require('./db/init');
-const setupRoutes = require('./routes/setup');
+const setupRoutes = require('./routes/setup').router;
 const adminRoutes = require('./routes/admin');
+const ctfRoutes = require('./routes/ctf');
 
+
+console.log('DEBUG: setupRoutes type:', typeof setupRoutes);
+console.log('DEBUG: setupRoutes value:', setupRoutes);
+console.log('DEBUG: ctfRoutes type:', typeof ctfRoutes);
+console.log('DEBUG: ctfRoutes value:', ctfRoutes);
 // init env variables from .env file
 require('dotenv').config();
 
@@ -42,7 +48,7 @@ app.use(express.json());
  * Yep!! :)
  * Routes
  */
-
+app.use('/ctf', ctfRoutes);
 app.use('/setup', setupRoutes);
 app.use('/auth', authRoutes); // /auth/{route} will be handled by auth
 // admin routes

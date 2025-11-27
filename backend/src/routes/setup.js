@@ -45,8 +45,8 @@ router.get('/status', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
-
+// Old admin setup route commented out
+/*
 router.post('/', async (req, res) => {
     try {
         if (await isSetupCompleted()) {
@@ -88,6 +88,67 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: 'Server error.' });
     }
 });
+*/
+
+router.post('/', async (req, res) => {
+    try {
+        if (await isSetupCompleted()) {
+            return res.status(403).json({ error: 'Forbidden', message: 'Setup already completed.' });
+        }
+
+        // duration_days is optional (defaults to 7)
+        const { username, password, ctf_name, duration_days } = req.body;
+
+        if (!username || !password || !ctf_name) {
+            return res.status(400).json({ error: 'Missing fields', message: 'Username, password and ctf_name are required.' });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password too short.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12); 
+
+        // Calculate End Date
+        // Default: Start NOW, End NOW + X days (default 7)
+        const days = duration_days ? parseInt(duration_days) : 7;
+        const start = new Date();
+        const end = new Date();
+        end.setDate(start.getDate() + days);
+
+        // Format for SQLite (YYYY-MM-DD HH:MM:SS)
+        const startStr = start.toISOString().slice(0, 19).replace('T', ' ');
+        const endStr = end.toISOString().slice(0, 19).replace('T', ' ');
+
+        // 1. Create Admin
+        await dbRun(SQL`
+            INSERT INTO admin_users (username, password_hash) 
+            VALUES (${username}, ${hashedPassword})
+        `);
+
+        // 2. Save Settings with dynamic dates
+        await dbRun(SQL`
+            INSERT INTO settings (ctf_name, ctf_start, ctf_end)
+            VALUES (${ctf_name}, ${startStr}, ${endStr})
+        `);
+
+        console.log(`[SETUP] Admin '${username}' created. CTF '${ctf_name}' duration: ${days} days.`);
+
+        res.status(201).json({ 
+            message: 'Setup completed.',
+            admin: username,
+            ctf_name: ctf_name,
+            start: startStr,
+            end: endStr
+        });
+
+    } catch (error) {
+        console.error('[SETUP ERROR]', error);
+        res.status(500).json({ error: 'Server error.' });
+    }
+});
+
+
 module.exports = {
     router
 };

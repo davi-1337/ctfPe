@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose()
-const db = new sqlite3.Database('../../database.db', (err) => {
+const db = new sqlite3.Database('./database.db', (err) => {
     if (err) {
         console.error(err.message);
     }
@@ -56,7 +56,9 @@ async function initDb() {
                     name TEXT,
                     description TEXT,
                     category TEXT,
-                    flag TEXT
+                    flag TEXT,
+                    first_blood_user INTEGER,
+                    FOREIGN KEY(category) REFERENCES category(id)
                 )`, (err) => {
                     if (err) {
                         reject(err);
@@ -127,6 +129,57 @@ async function initDb() {
                         resolve();
                     }
                 });
+                db.run(`CREATE TABLE team_members (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    team_id INTEGER,
+                    user_id INTEGER,
+                    FOREIGN KEY(team_id) REFERENCES teams(id),
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                )`, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+                db.run(`CREATE TABLE announcements (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT,
+                    content TEXT,
+                    post_time DATETIME DEFAULT CURRENT_TIMESTAMP
+                )`, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+                db.run(`CREATE TABLE settings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ctf_name TEXT,
+                    ctf_start DATETIME,
+                    ctf_end DATETIME
+                )`, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+                db.run(`CREATE TABLE leaderboard (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    team INTEGER,
+                    points INTEGER,
+                    last_solve_time DATETIME,
+                    FOREIGN KEY(team) REFERENCES teams(id)
+                )`, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                }
+                );
             });
         });
     }
