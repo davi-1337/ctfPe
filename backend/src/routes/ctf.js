@@ -146,11 +146,10 @@ router.post('/team/join', async (req, res) => {
 router.get('/challenges', async (req, res) => {
     try {
         const challenges = await dbAll(SQL`
-            SELECT id, name, description, category, points, first_blood_user, url 
+            SELECT id, name, description, category, points, first_blood_user, url, remoteUrl
             FROM challenges
         `);
         
-        // Check which ones are solved by this user
         const userId = req.user.id;
         const solves = await dbAll(SQL`SELECT challenge_id FROM solves WHERE user_id = ${userId}`);
         const solvedIds = solves.map(s => s.challenge_id);
@@ -181,6 +180,49 @@ router.get('/settings', async (req, res) => {
         }
 
         res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /ctf/challenges/filter/:categoryId - List challenges by category ID
+router.get('/challenges/filter/:categoryId', async (req, res) => {
+    const categoryId = req.params.categoryId;
+
+    try {
+        // 1. Verify category exists (Optional, but good for UX)
+        // const category = await dbGet(SQL`SELECT id FROM category WHERE id = ${categoryId}`);
+        // if (!category) return res.status(404).json({ error: 'Category not found' });
+
+        // 2. Get Challenges for this category
+        const challenges = await dbAll(SQL`
+            SELECT id, name, description, category, points, first_blood_user, url, remoteUrl
+            FROM challenges
+            WHERE category = ${categoryId}
+        `);
+        
+        // 3. Calculate Solved Status (Same logic as main list)
+        const userId = req.user.id;
+        const solves = await dbAll(SQL`SELECT challenge_id FROM solves WHERE user_id = ${userId}`);
+        const solvedIds = solves.map(s => s.challenge_id);
+
+        const challengesWithStatus = challenges.map(c => ({
+            ...c,
+            solved: solvedIds.includes(c.id)
+        }));
+
+        res.json(challengesWithStatus);
+
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /ctf/categories - List all available categories
+router.get('/categories', async (req, res) => {
+    try {
+        const categories = await dbAll(SQL`SELECT * FROM category`);
+        res.json(categories);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }

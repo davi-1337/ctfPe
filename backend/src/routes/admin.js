@@ -140,16 +140,16 @@ router.get('/categories', async (req, res) => {
  */
 router.post('/challenges', upload.single('file'), async (req, res) => {
     try {
-        const { name, description, category, points, flag } = req.body;
+        const { name, description, category, points, flag, remoteUrl } = req.body; // Add remoteUrl
         const file = req.file;
 
         if (!name || !description || !category || !points || !flag) {
-            return res.status(400).json({ error: 'All fields (name, description, category, points, flag) are required.' });
+            return res.status(400).json({ error: 'Name, description, category, points, and flag are required.' });
         }
 
         const catExists = await dbGet(SQL`SELECT id FROM category WHERE name = ${category}`);
         if (!catExists) {
-            return res.status(400).json({ error: `Category '${category}' does not exist. Create it first.` });
+            return res.status(400).json({ error: `Category '${category}' does not exist.` });
         }
 
         let fileUrl = null;
@@ -157,10 +157,10 @@ router.post('/challenges', upload.single('file'), async (req, res) => {
             fileUrl = `/uploads/challenges/${file.filename}`;
         }
 
-        // 4. Insert into DB
+        // Insert with remoteUrl
         await dbRun(SQL`
-            INSERT INTO challenges (name, description, category, points, flag, url)
-            VALUES (${name}, ${description}, ${category}, ${points}, ${flag}, ${fileUrl})
+            INSERT INTO challenges (name, description, category, points, flag, url, remoteUrl)
+            VALUES (${name}, ${description}, ${category}, ${points}, ${flag}, ${fileUrl}, ${remoteUrl})
         `);
 
         res.status(201).json({ 
@@ -173,5 +173,6 @@ router.post('/challenges', upload.single('file'), async (req, res) => {
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
+
 
 module.exports = router;

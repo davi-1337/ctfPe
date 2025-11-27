@@ -50,15 +50,16 @@ async function initDb() {
                     }
                 });
                 db.run(`CREATE TABLE challenges (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    url TEXT,
-                    points TEXT,
-                    name TEXT,
-                    description TEXT,
-                    category TEXT,
-                    flag TEXT,
-                    first_blood_user INTEGER,
-                    FOREIGN KEY(category) REFERENCES category(id)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT,
+    remoteUrl TEXT,  
+    points TEXT,
+    name TEXT,
+    description TEXT,
+    category TEXT,
+    flag TEXT,
+    first_blood_user INTEGER,
+    FOREIGN KEY(category) REFERENCES category(id)
                 )`, (err) => {
                     if (err) {
                         reject(err);
@@ -92,7 +93,7 @@ async function initDb() {
                     } else {
                         resolve();
                     }
-                }   );
+                });
                 db.run(`CREATE TABLE admin_users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT UNIQUE,
@@ -184,7 +185,7 @@ async function initDb() {
         });
     }
 
-    
+
 }
 
 
@@ -201,7 +202,7 @@ function isDbInitialized() {
 
 
 module.exports = {
-  db,
-  initDb,
-  isDbInitialized
+    db,
+    initDb,
+    isDbInitialized
 };
